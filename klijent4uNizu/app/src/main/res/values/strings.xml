@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">klijent4uNizu</string>
+    <string name="title">4 U NIZU</string>
+    <string name="activity">pocetna strana</string>
+    <string name="serverIP">IP adresa servera</string>
+    <string name="port">Port</string>
+    <string name="player">Igrac:</string>
+    <string name="connect">KONEKTUJ SE</string>
+    <string name="enterRoom">UDJI U SOBU</string>
+    <string name="play">ZAPOCNI IGRU</string>
+    <string name="opponentSelection">Izaberi protivnika</string>
+    <string name="title_activity_fullscreen">FullscreenActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+</resources>
