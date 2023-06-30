@@ -44,16 +44,9 @@ public class MainActivity extends AppCompatActivity {
     private BufferedReader br;
     private PrintWriter pw;
 
-    public Socket getSocket() {
-        return socket;
-    }
 
     public BufferedReader getBr() {
         return br;
-    }
-
-    public PrintWriter getPw() {
-        return pw;
     }
 
     public Spinner getSpnPlayers() {

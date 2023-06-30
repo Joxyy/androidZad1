@@ -18,6 +18,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Objects;
 
 public class GameActivity extends AppCompatActivity {
     public static String RESPONSE_MESSAGE = "Response_text";
@@ -70,9 +71,9 @@ public class GameActivity extends AppCompatActivity {
             }
         }).start();
 
+        while(br==null);
 
-
-
+        new Thread(new ReceiveMessageFromServerInGame(GameActivity.this)).start();
         //POCETAK IGRICE**************
         //samo jedan moze da klice
         if(!plyr1.equals(MainActivity.getWhoami())){
@@ -91,7 +92,7 @@ public class GameActivity extends AppCompatActivity {
 
         circles = new HashMap<String, ImageView>();
         LinearLayout llmain = findViewById(R.id.lvmain);
-        new Thread(new ReceiveMessageFromServerInGame(GameActivity.this)).start();
+
         for (int row = 1; row <= rows; row++){
             LinearLayout llrow = new LinearLayout(this);
             llrow.setOrientation(LinearLayout.HORIZONTAL);
@@ -111,7 +112,7 @@ public class GameActivity extends AppCompatActivity {
                         int r= Integer.parseInt(v.getTag(R.id.pos).toString().split(",")[0].trim());
                         int k=Integer.parseInt(v.getTag(R.id.pos).toString().split(",")[1].trim());
                         for(int i=6;i>=r;i--){
-                            if(circles.get(i+","+k).getTag(R.id.colour).toString().equals("gray")){
+                            if(Objects.requireNonNull(circles.get(i + "," + k)).getTag(R.id.colour).toString().equals("gray")){
                                 /*for(int broj=r; broj<i;broj++) {
                                     if (zeleni)
                                         circles.get(i + "," + k).setImageResource(R.drawable.android);
@@ -126,7 +127,7 @@ public class GameActivity extends AppCompatActivity {
                                     sendMessage("Draw: " + i + "," + k + ": " + opponent);  //saljem za koga je poruka i parametre za hash mapu
                                     Toast.makeText(GameActivity.this, opponent + " je na potezu", Toast.LENGTH_SHORT).show();
                                     getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                                    checkWinner();
+                                    //checkWinner(i + "," + k);
                                     break;
                             }
                         }
@@ -150,16 +151,16 @@ public class GameActivity extends AppCompatActivity {
     }
     public void drawOtherCircle(String pos){
         if (zeleni) {
+            Objects.requireNonNull(circles.get(pos)).setImageResource(R.drawable.purple);
+            circles.get(pos).setTag(R.id.colour, "purple");
+        } else {
             circles.get(pos).setImageResource(R.drawable.android);
             circles.get(pos).setTag(R.id.colour, "green");
-        } else {
-            circles.get(pos).setImageResource(R.drawable.purple);
-            circles.get(pos).setTag(R.id.colour, "purple");
         }
     }
     public void drawMyCircle(String pos){
-        if (!zeleni) {
-            circles.get(pos).setImageResource(R.drawable.android);
+        if (zeleni) {
+            Objects.requireNonNull(circles.get(pos)).setImageResource(R.drawable.android);
             circles.get(pos).setTag(R.id.colour, "green");
         } else {
             circles.get(pos).setImageResource(R.drawable.purple);
@@ -172,9 +173,45 @@ public class GameActivity extends AppCompatActivity {
     public void enableCircles(){
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
-    public boolean checkWinner(){
+    public boolean checkWinner(String pos){
         winner = true;
+        int r= Integer.parseInt(pos.split(",")[0].trim());
+        int k=Integer.parseInt(pos.split(",")[1].trim());
         for(int i=1;i<=3;i++){
+            if(circles.get((r+i) + "," + (k+i))!=null) {
+                if (!circles.get((r+i) + "," + (k+i)).getTag(R.id.colour).toString().equals(boja))
+                    winner = false;
+            }
+            if(circles.get((r-i) + "," + (k-i))!=null) {
+                if (!circles.get((r-i) + "," + (k-i)).getTag(R.id.colour).toString().equals(boja))
+                    winner = false;
+            }
+            if(circles.get((r-i) + "," + (k+i))!=null) {
+                if (!circles.get((r-i) + "," + (k+i)).getTag(R.id.colour).toString().equals(boja))
+                    winner = false;
+            }
+            if(circles.get((r+i) + "," + (k-i))!=null) {
+                if (!circles.get((r+i) + "," + (k-i)).getTag(R.id.colour).toString().equals(boja))
+                    winner = false;
+            }
+            if(circles.get(r + "," + (k-i))!=null) {
+                if (!circles.get(r+ "," + (k-i)).getTag(R.id.colour).toString().equals(boja))
+                    winner = false;
+            }
+            if(circles.get(r + "," + (k+i))!=null) {
+                if (!circles.get(r+ "," + (k+i)).getTag(R.id.colour).toString().equals(boja))
+                    winner = false;
+            }
+            if(circles.get((r+i) + "," + k)!=null) {
+                if (!circles.get((r+i) + "," + k).getTag(R.id.colour).toString().equals(boja))
+                    winner = false;
+            }
+            if(circles.get((r-i) + "," + k)!=null) {
+                if (!circles.get((r-i) + "," + k).getTag(R.id.colour).toString().equals(boja))
+                    winner = false;
+            }
+        }
+        /*for(int i=1;i<=3;i++){
             for (int j=1;j<=4;i++) {
                 for (int k=0;k<4;k++) {
                     if (!circles.get((i + k) + "," + (j + k)).getTag(R.id.colour).toString().equals(boja))
@@ -195,7 +232,8 @@ public class GameActivity extends AppCompatActivity {
                         winner = false;
                 }
             }
-        }
+        }*/
+
     return winner;
     }
 }
