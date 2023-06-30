@@ -108,10 +108,10 @@ public class ConnectedPlayers implements Runnable{
                     //vec nam je korisnik poslao korisnicko ime, poruka koja je 
                     //stigla je za nekog drugog korisnika iz chat room-a (npr Milana) u 
                     //formatu Milan: Cao Milane, kako si?
-                    System.out.println("waiting for request");
+                    System.out.println("cekam poruku");
                     String line = this.br.readLine();
                     System.out.println(line);
-                    System.out.println("stigao zahtev");
+                    System.out.println("primljena poruka");
                     if (line != null) {
                         /*prepoznaj za koga je poruka, pronadji tog 
                         korisnika i njemu prosledi poruku
@@ -150,10 +150,31 @@ public class ConnectedPlayers implements Runnable{
 
                             for (ConnectedPlayers clnt : this.allPlayers) {
                                 if (clnt.getUserName().equals(opponent)) {
-                                    System.out.println(clnt.getUserName());
                                     //prosledi poruku namenjenom korisniku
-                                    clnt.pw.println("Request from: " +this.userName);
-                                    System.out.println(opponent + "");
+                                    clnt.pw.println("Request accepted: " +this.userName);
+                                    clnt.pw.println("Start the game: " +this.userName +":"+opponent);   //OVO DA BIH ZNALA KO PRVI IGRA
+                                }else if(clnt.getUserName().equals(this.userName)){
+                                    clnt.pw.println("Start the game: " +this.userName +":"+opponent); //NEK UVEK BUDE PRVI TAJ KOJI JE PRIHVATIO ZAHTEV
+                                } 
+                                
+                                else {
+                                    //ispisi da je korisnik kome je namenjena poruka odsutan
+                                    if (opponent.equals("")) {
+                                        this.pw.println("Igrac " + opponent + " je odsutan!");
+                                    }
+                                }
+                            }
+                        }
+                        else if(line.startsWith("Request denied: ")){
+                            String[] informacija = line.split(": ");
+                            String opponent = informacija[1].trim();
+                                System.out.println(this.userName + " je odbio da igra");
+                                for (ConnectedPlayers clnt : this.allPlayers) {
+                                if (clnt.getUserName().equals(opponent)) {
+                                    //prosledi poruku namenjenom korisniku
+                                    System.out.println(clnt.getUserName());
+                                    clnt.pw.println("Request denied: " +this.userName);
+
                                 } else {
                                     //ispisi da je korisnik kome je namenjena poruka odsutan
                                     if (opponent.equals("")) {
@@ -162,9 +183,24 @@ public class ConnectedPlayers implements Runnable{
                                 }
                             }
                         }
-                        else if(line.startsWith("Request denied: ")){}
-                        else{
-                            
+                        else if(line.startsWith("Draw: ")){
+                            String[] informacija = line.split(": ");
+                            String pos = informacija[1].trim();
+                            String opponent = informacija[2].trim();
+                                System.out.println(this.userName + " je je popunio polje " + pos);
+                                for (ConnectedPlayers clnt : this.allPlayers) {
+                                if (clnt.getUserName().equals(opponent)) {
+                                    //prosledi poruku namenjenom korisniku
+                                    System.out.println(clnt.getUserName());
+                                    clnt.pw.println("Draw: " +pos);
+
+                                } else {
+                                    //ispisi da je korisnik kome je namenjena poruka odsutan
+                                    if (opponent.equals("")) {
+                                        this.pw.println("Igrac " + opponent + " je odsutan!");
+                                    }
+                                }
+                            }
                         }
 
                     } else {

@@ -81,6 +81,17 @@ public class ReceiveMessageFromServer implements Runnable{
                     String opponent = line.split(":")[1].trim();
                     parent.runOnUiThread(() -> parent.confirmRequest(opponent));
                 }
+                else if (line.startsWith("Request accepted: ")) {
+                    String opponent = line.split(":")[1].trim();
+                    parent.runOnUiThread(() -> Toast.makeText(parent, opponent + " je prihvatio zahtev", Toast.LENGTH_LONG).show());
+                }
+                else if (line.startsWith("Start the game: ")) {
+                    String plyr1 = line.split(":")[1].trim();
+                    String plyr2 = line.split(":")[2].trim();
+                    parent.runOnUiThread(() -> parent.startTheGame(plyr1, plyr2));
+                }
+
+
                 else {// DODAJ OVDE ELSEIF ZA DIJALOG BOX////////////////////////
                     parent.runOnUiThread(() -> parent.setNewReceivedMessage(line));
 

@@ -24,5 +24,8 @@ public class SocketSingleton {
 
         return sSoleInstance;
     }
+    public static synchronized SocketSingleton getInstance() throws IOException {
+        return sSoleInstance;
+    }
 
 }

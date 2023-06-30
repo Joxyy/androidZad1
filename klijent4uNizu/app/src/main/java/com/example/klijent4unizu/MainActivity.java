@@ -1,9 +1,14 @@
 package com.example.klijent4unizu;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
@@ -21,6 +26,9 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class MainActivity extends AppCompatActivity {
+    public static String PLYR1 = "RequestKey1";
+    public static String PLYR2 = "RequestKey2";
+
     EditText etIP;
     EditText etPort;
     EditText etNickname;
@@ -31,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     Spinner spnPlayers;
     TextView tvOutputMessages;
 
+    private static String whoami;
     private Socket socket;
     private BufferedReader br;
     private PrintWriter pw;
@@ -49,6 +58,10 @@ public class MainActivity extends AppCompatActivity {
 
     public Spinner getSpnPlayers() {
         return spnPlayers;
+    }
+
+    public static String getWhoami() {
+        return whoami;
     }
 
     @Override
@@ -115,47 +128,45 @@ public class MainActivity extends AppCompatActivity {
                 }
             }).start();
         });
-        this.btnEnterRoom.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!MainActivity.this.etNickname.getText().toString().equals("")) {
-                    //posalji svoje ime serveru, kao kod kreiranja socket-a, to se mora uraditi u
-                    //zasebnoj niti, pogledajte implementaciju funkcije sendMessage
-                    sendMessage(MainActivity.this.etNickname.getText().toString());
-                    //za prijem poruka od servera (stizace asinhrono) koristi poseban thread
-                    //da bismo u novom thread-u mogli da menjamo sadrzaj komponenti (npr Combo Box-a)
-                    //konstruktoru novog thread-a se prosledjuje MainActivity.this (obratite paznju da
-                    //na ovom mestu u kodu ako stavimo samo this, to se odnosi na objekat
-                    //View.OnClickListener klase). Obratite paznju da nema potreba praviti lokalnu
-                    //promenljivu ili atribut klase MainActivity koji ce biti objekat klase
-                    //ReceiveMessageFromServer, cak ni objekat klase Thread (doduse objekat klase
-                    //Thread bi trebalo napraviti u slucaju da zelimo negde u kodu da cekamo da se
-                    // ta nit terminira pozivom na Thread.join - ovde se to ne desava)
-                    new Thread(new ReceiveMessageFromServer(MainActivity.this)).start();
+        this.btnEnterRoom.setOnClickListener(view -> {
+            if (!MainActivity.this.etNickname.getText().toString().equals("")) {
+                //posalji svoje ime serveru, kao kod kreiranja socket-a, to se mora uraditi u
+                //zasebnoj niti, pogledajte implementaciju funkcije sendMessage
+                MainActivity.whoami = MainActivity.this.etNickname.getText().toString();
+                sendMessage(MainActivity.whoami);
+                //za prijem poruka od servera (stizace asinhrono) koristi poseban thread
+                //da bismo u novom thread-u mogli da menjamo sadrzaj komponenti (npr Combo Box-a)
+                //konstruktoru novog thread-a se prosledjuje MainActivity.this (obratite paznju da
+                //na ovom mestu u kodu ako stavimo samo this, to se odnosi na objekat
+                //View.OnClickListener klase). Obratite paznju da nema potreba praviti lokalnu
+                //promenljivu ili atribut klase MainActivity koji ce biti objekat klase
+                //ReceiveMessageFromServer, cak ni objekat klase Thread (doduse objekat klase
+                //Thread bi trebalo napraviti u slucaju da zelimo negde u kodu da cekamo da se
+                // ta nit terminira pozivom na Thread.join - ovde se to ne desava)
+                new Thread(new ReceiveMessageFromServer(MainActivity.this)).start();
 
-                    //Dozvoli koriscenje odredjenih komponenti, a zabrani ostale
-                    MainActivity.this.spnPlayers.setEnabled(true);
-                    MainActivity.this.btnPlay.setEnabled(true);
-                    MainActivity.this.etNickname.setEnabled(false);
-                    MainActivity.this.btnEnterRoom.setEnabled(false);
-                } else {
-                    MainActivity.this.spnPlayers.setEnabled(false);
-                    MainActivity.this.btnPlay.setEnabled(false);
-                }
+                //Dozvoli koriscenje odredjenih komponenti, a zabrani ostale
+                MainActivity.this.spnPlayers.setEnabled(true);
+                MainActivity.this.btnPlay.setEnabled(true);
+                MainActivity.this.etNickname.setEnabled(false);
+                MainActivity.this.btnEnterRoom.setEnabled(false);
+            } else {
+                MainActivity.this.spnPlayers.setEnabled(false);
+                MainActivity.this.btnPlay.setEnabled(false);
             }
         });
         this.btnPlay.setOnClickListener(view -> {
             //proveri da li se salje poruka samom sebi, ako ne, ispisi tekst poslate poruke
             //u TextView polju, a posalji poruku odgovarajuceg formata koristeci sendMessage metodu
-            if (!MainActivity.this.etNickname.getText().toString().equals("") &&
-                    !MainActivity.this.etNickname.getText().toString().equals(MainActivity.this.spnPlayers.getSelectedItem().toString())){
+            if (!MainActivity.whoami.equals("") &&
+                    !MainActivity.whoami.equals(MainActivity.this.spnPlayers.getSelectedItem().toString())){
                 sendMessage("Send request to: "+ MainActivity.this.spnPlayers.getSelectedItem().toString());
                 Toast.makeText(MainActivity.this, "Zahtev za igranje uspesno poslat", Toast.LENGTH_LONG).show();
                 MainActivity.this.spnPlayers.setEnabled(false);
                 MainActivity.this.btnPlay.setEnabled(false);
             }
             else{
-                if (MainActivity.this.etNickname.getText().toString().equals(MainActivity.this.spnPlayers.getSelectedItem().toString())){
+                if (MainActivity.whoami.equals(MainActivity.this.spnPlayers.getSelectedItem().toString())){
                     Toast.makeText(MainActivity.this, "Ne mozete igrati sami sa sobom", Toast.LENGTH_LONG).show();
                 }
             }
@@ -198,4 +209,23 @@ public class MainActivity extends AppCompatActivity {
         alert.show();
 
     }
+    public void startTheGame(String plyr1, String plyr2){
+        Intent intent = new Intent(this, GameActivity.class);
+        intent.putExtra(PLYR1, plyr1);
+        intent.putExtra(PLYR2, plyr2);
+        gameActivityLauncher.launch(intent);
+    }
+    ActivityResultLauncher<Intent> gameActivityLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                //et.setText("");
+                if (result.getResultCode() == RESULT_OK){
+                    Intent data = result.getData();
+                    String response;
+                    response = data.getStringExtra(GameActivity.RESPONSE_MESSAGE);
+                    //tv.setText(response);
+                }
+            }
+    );
+
 }
