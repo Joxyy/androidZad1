@@ -56,24 +56,21 @@ public class GameActivity extends AppCompatActivity {
                     //konzolnim/GUI Java aplikacijama
                     SocketSingleton s2 = SocketSingleton.getInstance(); //vraca singlton objekat
                     GameActivity.this.socket = s2.getSocket();
+                    GameActivity.this.br = s2.getBr();
+                    GameActivity.this.pw = s2.getPw();
+                    new Thread(new ReceiveMessageFromServerInGame(GameActivity.this)).start();
                     runOnUiThread(() -> {
                         Toast.makeText(GameActivity.this, "Povezani ste sa serverom", Toast.LENGTH_SHORT).show();
                     });
                 } catch (IOException e) {
                     runOnUiThread(() -> Toast.makeText(GameActivity.this, "Neuspesna konekcija", Toast.LENGTH_SHORT).show());
                 }
-                try {
-                    GameActivity.this.br = new BufferedReader(new InputStreamReader(GameActivity.this.socket.getInputStream()));
-                    GameActivity.this.pw = new PrintWriter(new OutputStreamWriter(GameActivity.this.socket.getOutputStream()), true);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+
             }
         }).start();
 
-        while(br==null);
 
-        new Thread(new ReceiveMessageFromServerInGame(GameActivity.this)).start();
+
         //POCETAK IGRICE**************
         //samo jedan moze da klice
         if(!plyr1.equals(MainActivity.getWhoami())){
@@ -127,7 +124,9 @@ public class GameActivity extends AppCompatActivity {
                                     sendMessage("Draw: " + i + "," + k + ": " + opponent);  //saljem za koga je poruka i parametre za hash mapu
                                     Toast.makeText(GameActivity.this, opponent + " je na potezu", Toast.LENGTH_SHORT).show();
                                     getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                                    //checkWinner(i + "," + k);
+                                    /*if(checkWinner(i + "," + k)){
+                                        Toast.makeText(GameActivity.this, "POBEDILI STE", Toast.LENGTH_SHORT).show();
+                                    }*/
                                     break;
                             }
                         }

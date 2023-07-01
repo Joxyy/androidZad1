@@ -101,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
                         //konzolnim/GUI Java aplikacijama
                         SocketSingleton s1 = SocketSingleton.getInstance(MainActivity.this.etIP.getText().toString(), Integer.parseInt(MainActivity.this.etPort.getText().toString()));
                         MainActivity.this.socket = s1.getSocket();
+                        MainActivity.this.br = s1.getBr();
+                        MainActivity.this.pw = s1.getPw();
                         runOnUiThread(() -> {
                             Toast.makeText(MainActivity.this, "Povezani ste sa serverom", Toast.LENGTH_LONG).show();
                             MainActivity.this.etNickname.setEnabled(true);
@@ -112,12 +114,7 @@ public class MainActivity extends AppCompatActivity {
                     } catch (IOException e) {
                         runOnUiThread(() -> Toast.makeText(MainActivity.this, "Neuspesna konekcija", Toast.LENGTH_LONG).show());
                     }
-                    try {
-                        MainActivity.this.br = new BufferedReader(new InputStreamReader(MainActivity.this.socket.getInputStream()));
-                        MainActivity.this.pw = new PrintWriter(new OutputStreamWriter(MainActivity.this.socket.getOutputStream()), true);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+
                 }
             }).start();
         });
