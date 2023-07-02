@@ -55,9 +55,9 @@ public class GameActivity extends AppCompatActivity {
                     //loopback adresa u Androidu je 10.0.2.2 slicno kao 127.0.0.1 u dosadasnjim
                     //konzolnim/GUI Java aplikacijama
                     SocketSingleton s2 = SocketSingleton.getInstance(); //vraca singlton objekat
-                    GameActivity.this.socket = s2.getSocket();
-                    GameActivity.this.br = s2.getBr();
-                    GameActivity.this.pw = s2.getPw();
+                    GameActivity.this.socket = SocketSingleton.getSocket();
+                    //GameActivity.this.br = SocketSingleton.getBr();
+                    GameActivity.this.pw = SocketSingleton.getPw();
                     new Thread(new ReceiveMessageFromServerInGame(GameActivity.this)).start();
                     runOnUiThread(() -> {
                         Toast.makeText(GameActivity.this, "Povezani ste sa serverom", Toast.LENGTH_SHORT).show();
@@ -108,8 +108,9 @@ public class GameActivity extends AppCompatActivity {
 
                         int r= Integer.parseInt(v.getTag(R.id.pos).toString().split(",")[0].trim());
                         int k=Integer.parseInt(v.getTag(R.id.pos).toString().split(",")[1].trim());
+
                         for(int i=6;i>=r;i--){
-                            if(Objects.requireNonNull(circles.get(i + "," + k)).getTag(R.id.colour).toString().equals("gray")){
+                            if(circles.get(i + "," + k).getTag(R.id.colour).toString().equals("gray")){
                                 /*for(int broj=r; broj<i;broj++) {
                                     if (zeleni)
                                         circles.get(i + "," + k).setImageResource(R.drawable.android);
@@ -124,9 +125,9 @@ public class GameActivity extends AppCompatActivity {
                                     sendMessage("Draw: " + i + "," + k + ": " + opponent);  //saljem za koga je poruka i parametre za hash mapu
                                     Toast.makeText(GameActivity.this, opponent + " je na potezu", Toast.LENGTH_SHORT).show();
                                     getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-                                    /*if(checkWinner(i + "," + k)){
+                                    if(checkWinner()){
                                         Toast.makeText(GameActivity.this, "POBEDILI STE", Toast.LENGTH_SHORT).show();
-                                    }*/
+                                    }
                                     break;
                             }
                         }
@@ -137,7 +138,6 @@ public class GameActivity extends AppCompatActivity {
             }
             llmain.addView(llrow);
         }
-
     }
     public void sendMessage(String message){
         // Slicno kao kod kreiranja Socketa, slanje poruke se mora vrsiti u zasebnoj niti, ali
@@ -150,7 +150,7 @@ public class GameActivity extends AppCompatActivity {
     }
     public void drawOtherCircle(String pos){
         if (zeleni) {
-            Objects.requireNonNull(circles.get(pos)).setImageResource(R.drawable.purple);
+            circles.get(pos).setImageResource(R.drawable.purple);
             circles.get(pos).setTag(R.id.colour, "purple");
         } else {
             circles.get(pos).setImageResource(R.drawable.android);
@@ -172,66 +172,46 @@ public class GameActivity extends AppCompatActivity {
     public void enableCircles(){
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
     }
-    public boolean checkWinner(String pos){
+    public boolean checkWinner(){
         winner = true;
-        int r= Integer.parseInt(pos.split(",")[0].trim());
-        int k=Integer.parseInt(pos.split(",")[1].trim());
+
         for(int i=1;i<=3;i++){
-            if(circles.get((r+i) + "," + (k+i))!=null) {
-                if (!circles.get((r+i) + "," + (k+i)).getTag(R.id.colour).toString().equals(boja))
-                    winner = false;
-            }
-            if(circles.get((r-i) + "," + (k-i))!=null) {
-                if (!circles.get((r-i) + "," + (k-i)).getTag(R.id.colour).toString().equals(boja))
-                    winner = false;
-            }
-            if(circles.get((r-i) + "," + (k+i))!=null) {
-                if (!circles.get((r-i) + "," + (k+i)).getTag(R.id.colour).toString().equals(boja))
-                    winner = false;
-            }
-            if(circles.get((r+i) + "," + (k-i))!=null) {
-                if (!circles.get((r+i) + "," + (k-i)).getTag(R.id.colour).toString().equals(boja))
-                    winner = false;
-            }
-            if(circles.get(r + "," + (k-i))!=null) {
-                if (!circles.get(r+ "," + (k-i)).getTag(R.id.colour).toString().equals(boja))
-                    winner = false;
-            }
-            if(circles.get(r + "," + (k+i))!=null) {
-                if (!circles.get(r+ "," + (k+i)).getTag(R.id.colour).toString().equals(boja))
-                    winner = false;
-            }
-            if(circles.get((r+i) + "," + k)!=null) {
-                if (!circles.get((r+i) + "," + k).getTag(R.id.colour).toString().equals(boja))
-                    winner = false;
-            }
-            if(circles.get((r-i) + "," + k)!=null) {
-                if (!circles.get((r-i) + "," + k).getTag(R.id.colour).toString().equals(boja))
-                    winner = false;
-            }
-        }
-        /*for(int i=1;i<=3;i++){
-            for (int j=1;j<=4;i++) {
+            for (int j=1;j<=4;j++) {
                 for (int k=0;k<4;k++) {
-                    if (!circles.get((i + k) + "," + (j + k)).getTag(R.id.colour).toString().equals(boja))
-                        winner = false;
-                    else if (!circles.get(i + "," + (j + k)).getTag(R.id.colour).toString().equals(boja))
-                        winner = false;
-                    else if (!circles.get((i + k) + "," + j).getTag(R.id.colour).toString().equals(boja))
-                        winner = false;
+                    int r=(i + k);
+                    int c=(j + k);
+                    if(circles.get(r + "," + c)!=null) {
+                        if (!circles.get(r + "," + c).getTag(R.id.colour).toString().equals(boja))
+                            winner = false;
+                    }
+                    r=i;
+                    if(circles.get(r + "," + c)!=null) {
+                        if (!circles.get(r + "," + c).getTag(R.id.colour).toString().equals(boja))
+                            winner = false;
+                    }
+                    r=(i + k);
+                    c=j;
+                    if(circles.get(r  + "," + c)!=null) {
+                        if (!circles.get(r + "," + c).getTag(R.id.colour).toString().equals(boja))
+                            winner = false;
+                    }
                 }
             }
         }
         for(int i=1;i<=3;i++){
-            for (int j=5;j<=7;i++) {
+            for (int j=5;j<=7;j++) {
                 for (int k=0;k<4;k++) {
-                    if (!circles.get((i + k) + "," + (j - k)).getTag(R.id.colour).toString().equals(boja))
-                        winner = false;
-                    else if (!circles.get((i + k) + "," + j).getTag(R.id.colour).toString().equals(boja))
-                        winner = false;
+                    if(circles.get((i + k) + "," + (j - k))!=null) {
+                        if (!circles.get((i + k) + "," + (j - k)).getTag(R.id.colour).toString().equals(boja))
+                            winner = false;
+                    }
+                    if(circles.get((i + k) + "," + j)!=null) {
+                        if (!circles.get((i + k) + "," + j).getTag(R.id.colour).toString().equals(boja))
+                            winner = false;
+                    }
                 }
             }
-        }*/
+        }
 
     return winner;
     }

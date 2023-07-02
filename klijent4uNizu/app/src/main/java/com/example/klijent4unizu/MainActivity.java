@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
                         //konzolnim/GUI Java aplikacijama
                         SocketSingleton s1 = SocketSingleton.getInstance(MainActivity.this.etIP.getText().toString(), Integer.parseInt(MainActivity.this.etPort.getText().toString()));
                         MainActivity.this.socket = s1.getSocket();
-                        MainActivity.this.br = s1.getBr();
+                        //MainActivity.this.br = s1.getBr();
                         MainActivity.this.pw = s1.getPw();
                         runOnUiThread(() -> {
                             Toast.makeText(MainActivity.this, "Povezani ste sa serverom", Toast.LENGTH_LONG).show();
@@ -199,10 +199,11 @@ public class MainActivity extends AppCompatActivity {
         alert.show();
 
     }
-    public void startTheGame(String plyr1, String plyr2){
+    public void startTheGame(String plyr1, String plyr2) throws InterruptedException {
         Intent intent = new Intent(this, GameActivity.class);
         intent.putExtra(PLYR1, plyr1);
         intent.putExtra(PLYR2, plyr2);
+        //ReceiveMessageFromServer.setPauseReading(true);
         gameActivityLauncher.launch(intent);
     }
     ActivityResultLauncher<Intent> gameActivityLauncher = registerForActivityResult(

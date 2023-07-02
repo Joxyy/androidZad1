@@ -9,6 +9,7 @@ import java.net.Socket;
 public class SocketSingleton {
     private static Socket socket;
     private static BufferedReader br;
+    private static String brCp;
     private static PrintWriter pw;
 
     public static Socket getSocket() {
@@ -42,9 +43,18 @@ public class SocketSingleton {
     public static synchronized SocketSingleton getInstance() throws IOException {
         return sSoleInstance;
     }
+    public static String ReadFromServer() throws IOException {
+        brCp=br.readLine();
+        return brCp;
+    }
 
+    public static String getBrCp() {
+        return brCp;
+    }
 
-
+    public static void setBrCp(String brCp) {
+        SocketSingleton.brCp = brCp;
+    }
     /*private static SocketSingleton single_instance = null;
 
     private static SocketSingleton sSoleInstance;
