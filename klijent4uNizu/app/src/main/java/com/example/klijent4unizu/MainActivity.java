@@ -181,13 +181,13 @@ public class MainActivity extends AppCompatActivity {
         builder.setTitle("Potvrdi");
         builder.setMessage(opponent + " salje zahtev. Da li zelite da igrate?");
 
-        builder.setPositiveButton("YES", (dialog, which) -> {
+        builder.setPositiveButton("DA", (dialog, which) -> {
             // Do nothing but close the dialog
             sendMessage("Request accepted: " + opponent);
             dialog.dismiss();
         });
 
-        builder.setNegativeButton("NO", (dialog, which) -> {
+        builder.setNegativeButton("NE", (dialog, which) -> {
 
             // Do nothing
             sendMessage("Request denied: " + opponent);
@@ -201,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
     }
     public void startTheGame(String plyr1, String plyr2) throws InterruptedException {
         Intent intent = new Intent(this, GameActivity.class);
+        sendMessage("Not available: " + whoami);
         intent.putExtra(PLYR1, plyr1);
         intent.putExtra(PLYR2, plyr2);
         //ReceiveMessageFromServer.setPauseReading(true);
@@ -211,9 +212,18 @@ public class MainActivity extends AppCompatActivity {
             result -> {
                 //et.setText("");
                 if (result.getResultCode() == RESULT_OK){
-                    Intent data = result.getData();
-                    String response;
-                    response = data.getStringExtra(GameActivity.RESPONSE_MESSAGE);
+                    sendMessage("Available: " + whoami);
+                    MainActivity.this.spnPlayers.setEnabled(true);
+                    MainActivity.this.btnPlay.setEnabled(true);
+                    MainActivity.this.etNickname.setEnabled(false);
+                    MainActivity.this.btnConnect.setEnabled(false);
+                    MainActivity.this.etIP.setEnabled(false);
+                    MainActivity.this.etPort.setEnabled(false);
+                    MainActivity.this.btnEnterRoom.setEnabled(false);
+                    MainActivity.this.btnPlay.setEnabled(true);
+                    //Intent data = result.getData();
+                    //String response;
+                    //response = data.getStringExtra(GameActivity.RESPONSE_MESSAGE);
                     //tv.setText(response);
                 }
             }

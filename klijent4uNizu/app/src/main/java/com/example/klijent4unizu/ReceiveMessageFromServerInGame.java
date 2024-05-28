@@ -46,6 +46,38 @@ public class ReceiveMessageFromServerInGame implements Runnable{
 
                             });
                         }
+                        if (line.startsWith("Confetti: ")) {
+                            String pos = line.split(":")[1].trim();
+                            parent.runOnUiThread(() -> {
+                                //parent.setNewReceivedMessage("Protivnik povezao " + pos);
+                                parent.drawWinnerCircle(pos);
+
+                            });
+                        }
+                        if (line.startsWith("Game over: ")) {
+                            String opponent = line.split(":")[1].trim();
+                            parent.runOnUiThread(() -> {
+                                Toast.makeText(parent, opponent + " je pobedio", Toast.LENGTH_SHORT).show();
+                                parent.enableCircles();
+                                parent.playAgain();
+                            });
+                        }
+                        if (line.startsWith("Dont play again: ")) {
+                            String opponent = line.split(":")[1].trim();
+                            parent.runOnUiThread(() -> {
+                                Toast.makeText(parent, opponent + " ne zeli da igra opet", Toast.LENGTH_SHORT).show();
+                                parent.exitTheGame();
+                            });
+                        }
+                        if (line.startsWith("Play again: ")) {
+                            String opponent = line.split(":")[1].trim();
+
+                            parent.runOnUiThread(() -> {
+                                parent.setFlgNewGame(true);
+                                Toast.makeText(parent, opponent + " zeli da igra opet", Toast.LENGTH_SHORT).show();
+                                parent.waitNewGame();
+                            });
+                        }
                     }
 
             }

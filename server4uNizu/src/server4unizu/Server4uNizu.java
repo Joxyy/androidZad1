@@ -20,6 +20,7 @@ public class Server4uNizu {
     private ServerSocket ssocket;
     private int port;
     private ArrayList<ConnectedPlayers> players;
+    private ArrayList<ConnectedPlayers> avPlayers;
 
     public ServerSocket getSsocket() {
         return ssocket;
@@ -50,9 +51,10 @@ public class Server4uNizu {
             if (client != null) {
                 //Povezao se novi klijent, kreiraj objekat klase ConnectedChatRoomClient
                 //koji ce biti zaduzen za komunikaciju sa njim
-                ConnectedPlayers clnt = new ConnectedPlayers(client, players);
+                ConnectedPlayers clnt = new ConnectedPlayers(client, players, avPlayers);
                 //i dodaj ga na listu povezanih klijenata jer ce ti trebati kasnije
                 players.add(clnt);
+                avPlayers.add(clnt);
                 //kreiraj novu nit (konstruktoru prosledi klasu koja implementira Runnable interfejs)
                 thr = new Thread(clnt);
                 //..i startuj ga
@@ -65,6 +67,7 @@ public class Server4uNizu {
     
     public Server4uNizu(int port) {
         this.players = new ArrayList<>();
+        this.avPlayers = new ArrayList<>();
         try {
             this.port = port;
             this.ssocket = new ServerSocket(port);

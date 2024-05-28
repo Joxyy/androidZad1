@@ -26,6 +26,8 @@ public class ConnectedPlayers implements Runnable{
     private BufferedReader br;
     private PrintWriter pw;
     private ArrayList<ConnectedPlayers> allPlayers;
+    private ArrayList<ConnectedPlayers> availablePlayers;
+
 
     //getters and setters
     public String getUserName() {
@@ -37,9 +39,12 @@ public class ConnectedPlayers implements Runnable{
     }
     
         //Konstruktor klase, prima kao argument socket kao vezu sa uspostavljenim klijentom
-    public ConnectedPlayers(Socket socket, ArrayList<ConnectedPlayers> allPlayers) {
+    public ConnectedPlayers(Socket socket, ArrayList<ConnectedPlayers> allPlayers, ArrayList<ConnectedPlayers> avPlayers) {
         this.socket = socket;
         this.allPlayers = allPlayers;
+        this.availablePlayers=avPlayers;
+
+
 
         //iz socket-a preuzmi InputStream i OutputStream
         try {
@@ -65,17 +70,20 @@ public class ConnectedPlayers implements Runnable{
         //Users: Milan Dusan Petar
         //i posalji svim korisnicima koji se trenutno nalaze u chat room-u
         String connectedUsers = "Users:";
-        for (ConnectedPlayers c : this.allPlayers) {
-            connectedUsers += " " + c.getUserName();
-        }
 
-        //prodji kroz sve klijente i svakom posalji info o novom stanju u sobi
-        for (ConnectedPlayers svimaUpdateCB : this.allPlayers) {
-            svimaUpdateCB.pw.println(connectedUsers);
-        }
+            for (ConnectedPlayers c : this.availablePlayers) {
+                connectedUsers += " " + c.getUserName();
+            }
 
+            //prodji kroz sve klijente i svakom posalji info o novom stanju u sobi
+            for (ConnectedPlayers svimaUpdateCB : this.availablePlayers) {
+                svimaUpdateCB.pw.println(connectedUsers);
+            }
+
+  
         System.out.println(connectedUsers);
     }
+
 
     @Override
     public void run() {
@@ -97,7 +105,8 @@ public class ConnectedPlayers implements Runnable{
                         for (ConnectedPlayers cl : this.allPlayers) {
                             if (cl.getUserName().equals(this.userName)) {
                                 this.allPlayers.remove(cl);
-                                break;
+                                this.availablePlayers.remove(cl);
+                                break;  //ovo je komanda koja terminira klijent thread
                             }
                         }
                         connectedClientsUpdateStatus();
@@ -182,6 +191,31 @@ public class ConnectedPlayers implements Runnable{
                                     }
                                 }
                             }
+                        }else if(line.startsWith("Not available: ")){
+                            //String[] informacija = line.split(": ");
+                            //String pos = informacija[1].trim();
+                            System.out.println("Not available: " + this.userName);
+
+                            
+                            Iterator<ConnectedPlayers> it = this.availablePlayers.iterator();
+                            while (it.hasNext()) {
+                                if (it.next().getUserName().equals(this.userName)) {
+                                    it.remove();
+                                }
+                            }
+                            connectedClientsUpdateStatus();
+                            
+                        }
+                        else if(line.startsWith("Available: ")){
+                                                        //String[] informacija = line.split(": ");
+                            //String pos = informacija[1].trim();
+                            System.out.println("Available: " + this.userName);
+                            for (ConnectedPlayers cl : this.allPlayers) {
+                                if (cl.getUserName().equals(this.userName)) {
+                                    this.availablePlayers.add(cl);
+                                }
+                            }
+                            connectedClientsUpdateStatus();
                         }
                         else if(line.startsWith("Draw: ")){
                             String[] informacija = line.split(": ");
@@ -194,7 +228,9 @@ public class ConnectedPlayers implements Runnable{
                                     System.out.println(clnt.getUserName());
                                     clnt.pw.println("Draw: " +pos);
 
-                                } else {
+                                }
+                        
+                                else {
                                     //ispisi da je korisnik kome je namenjena poruka odsutan
                                     if (opponent.equals("")) {
                                         this.pw.println("Igrac " + opponent + " je odsutan!");
@@ -202,8 +238,90 @@ public class ConnectedPlayers implements Runnable{
                                 }
                             }
                         }
+                        else if(line.startsWith("Confetti: ")){
+                            String[] informacija = line.split(": ");
+                            String pos = informacija[1].trim();
+                            String opponent = informacija[2].trim();
+                                System.out.println(this.userName + " pobednicka boja " + pos);
+                                for (ConnectedPlayers clnt : this.allPlayers) {
+                                if (clnt.getUserName().equals(opponent)) {
+                                    //prosledi poruku namenjenom korisniku
+                                    System.out.println(clnt.getUserName());
+                                    clnt.pw.println("Confetti: " +pos);
 
-                    } else {
+                                }
+                        
+                                else {
+                                    //ispisi da je korisnik kome je namenjena poruka odsutan
+                                    if (opponent.equals("")) {
+                                        this.pw.println("Igrac " + opponent + " je odsutan!");
+                                    }
+                                }
+                            }
+                        }
+                        
+                        else if(line.startsWith("Game over: ")){
+                            String[] informacija = line.split(": ");
+                            String opponent = informacija[1].trim();
+                                System.out.println(this.userName + " je pobedio");
+                                for (ConnectedPlayers clnt : this.allPlayers) {
+                                if (clnt.getUserName().equals(opponent)) {
+                                    //prosledi poruku namenjenom korisniku
+                                    System.out.println(clnt.getUserName());
+                                    clnt.pw.println("Game over: "+ this.userName);
+
+                                }
+                        
+                                else {
+                                    //ispisi da je korisnik kome je namenjena poruka odsutan
+                                    if (opponent.equals("")) {
+                                        this.pw.println("Igrac " + opponent + " je odsutan!");
+                                    }
+                                }
+                            }
+                        }else if(line.startsWith("Dont play again: ")){
+                            String[] informacija = line.split(": ");
+                            String opponent = informacija[1].trim();
+                                System.out.println(this.userName + " ne zeli da igra ponovo");
+                                for (ConnectedPlayers clnt : this.allPlayers) {
+                                if (clnt.getUserName().equals(opponent)) {
+                                    //prosledi poruku namenjenom korisniku
+                                    System.out.println(clnt.getUserName());
+                                    clnt.pw.println("Dont play again: "+ this.userName);
+
+                                }
+                        
+                                else {
+                                    //ispisi da je korisnik kome je namenjena poruka odsutan
+                                    if (opponent.equals("")) {
+                                        this.pw.println("Igrac " + opponent + " je odsutan!");
+                                    }
+                                }
+                            }
+                        }else if(line.startsWith("Play again: ")){
+                            String[] informacija = line.split(": ");
+                            String opponent = informacija[1].trim();
+                                System.out.println(this.userName + " zeli da igra ponovo");
+                                for (ConnectedPlayers clnt : this.allPlayers) {
+                                if (clnt.getUserName().equals(opponent)) {
+                                    //prosledi poruku namenjenom korisniku
+                                    System.out.println(clnt.getUserName());
+                                    clnt.pw.println("Play again: "+ this.userName);
+
+                                }
+                        
+                                else {
+                                    //ispisi da je korisnik kome je namenjena poruka odsutan
+                                    if (opponent.equals("")) {
+                                        this.pw.println("Igrac " + opponent + " je odsutan!");
+                                    }
+                                }
+                            }
+                        }
+                    }
+  
+                    
+                    else {
                         //slicno kao gore, ako je line null, klijent se diskonektovao
                         //ukloni tog korisnika iz liste povezanih korisnika u chat room-u
                         //i obavesti ostale da je korisnik napustio sobu
@@ -213,9 +331,16 @@ public class ConnectedPlayers implements Runnable{
                         //ne moze se prolaziti kroz kolekciju sa foreach a onda u 
                         //telu petlje uklanjati element iz te iste kolekcije
                         Iterator<ConnectedPlayers> it = this.allPlayers.iterator();
+                        //Iterator<String> it1 = this.availablePlayers.iterator();
                         while (it.hasNext()) {
                             if (it.next().getUserName().equals(this.userName)) {
                                 it.remove();
+                            }
+                        }
+                        Iterator<ConnectedPlayers> it1 = this.availablePlayers.iterator();
+                        while (it1.hasNext()) {
+                            if (it1.next().getUserName().equals(this.userName)) {
+                                it1.remove();
                             }
                         }
                         connectedClientsUpdateStatus();
@@ -229,13 +354,21 @@ public class ConnectedPlayers implements Runnable{
                 System.out.println("Disconnected user: " + this.userName);
                 //npr, ovakvo uklanjanje moze dovesti do izuzetka, pogledajte kako je 
                 //to gore uradjeno sa iteratorom
-                for (ConnectedPlayers cl : this.allPlayers) {
-                    if (cl.getUserName().equals(this.userName)) {
-                        this.allPlayers.remove(cl);
-                        connectedClientsUpdateStatus();
-                        return;
+                Iterator<ConnectedPlayers> it = this.allPlayers.iterator();
+
+                while (it.hasNext()) {
+                    if (it.next().getUserName().equals(this.userName)) {
+                        it.remove();
                     }
                 }
+                /*Iterator<ConnectedPlayers> it1 = this.availablePlayers.iterator();
+                        while (it1.hasNext()) {
+                            if (it1.next().getUserName().equals(this.userName)) {
+                                it1.remove();
+                            }
+                }*/
+                connectedClientsUpdateStatus();
+                return;
 
             }
 
